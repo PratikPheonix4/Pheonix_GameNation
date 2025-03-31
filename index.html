@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pheonix Gaming Store</title>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,6 +58,19 @@
         .support a:hover, .footer-links a:hover {
             text-decoration: underline;
         }
+        .payment-container {
+            display: none;
+            max-width: 400px;
+            margin: 20px auto;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        #qr-code {
+            max-width: 100%;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -83,37 +95,35 @@
             <a href="contact.html">Contact Us</a>
         </p>
     </div>
+
+    <div class="payment-container" id="paymentPage">
+        <h2>Payment Method</h2>
+        <p>⚡Scan to Pay⚡</p>
+        <div id="qr-container">
+            <!-- QR Code will be inserted here -->
+            <img id="qr-code" alt="UPI QR Code" />
+        </div>
+    </div>
+
     <script>
-        document.getElementById("pay-btn").addEventListener("click", function(event) {
-            let amountMap = {
-                "100": 7900, // ₹79.00
-                "250": 19900, // ₹199.00
-                "500": 39900  // ₹399.00
-            };
+        document.getElementById("pay-btn").addEventListener("click", function() {
             let selectedDiamonds = document.getElementById("diamondAmount").value;
-            let amount = amountMap[selectedDiamonds];
-            
-            var options = {
-                "key": "YOUR_RAZORPAY_KEY", 
-                "amount": amount, 
-                "currency": "INR",
-                "name": "Pheonix Gaming Store",
-                "description": "Diamond Top-up Payment",
-                "image": "https://your-logo-url.com/logo.png",
-                "handler": function (response) {
-                    alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
-                },
-                "prefill": {
-                    "name": "User Name",
-                    "email": "user@example.com",
-                    "contact": "9999999999"
-                },
-                "theme": {
-                    "color": "#FFD700"
-                }
+            let amountMap = {
+                "100": "79",
+                "250": "199",
+                "500": "399"
             };
-            var rzp = new Razorpay(options);
-            rzp.open();
+            let amount = amountMap[selectedDiamonds];
+            let upiVpa = "6370294756@ybl"; // Replace with your own UPI VPA
+            let transactionNote = "MLBB Diamonds";
+            let paymentUrl = `upi://pay?pa=${upiVpa}&pn=Pheonix%20Gaming%20Store&mc=123456&tid=1234&tr=xyz123&tn=${transactionNote}&am=${amount}&cu=INR`;
+
+            // Generate QR Code
+            let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(paymentUrl)}&size=200x200`;
+
+            // Display QR code
+            document.getElementById("qr-code").src = qrCodeUrl;
+            document.getElementById("paymentPage").style.display = "block";
         });
     </script>
 </body>
