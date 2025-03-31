@@ -162,7 +162,7 @@
                 "9288": "10500"
             };
             let amount = amountMap[selectedDiamonds];
-            let upiVpa = "6370294756@ybl"; // Replace with your own UPI VPA
+            let upiVpa = "jlsamanpaul@oksbi"; // Replace with your own UPI VPA
             let transactionNote = "MLBB Diamonds";
             let paymentUrl = `upi://pay?pa=${upiVpa}&pn=Pheonix%20Gaming%20Store&mc=123456&tid=1234&tr=xyz123&tn=${transactionNote}&am=${amount}&cu=INR`;
 
@@ -174,20 +174,22 @@
             document.getElementById("paymentPage").style.display = "block";
 
             // Send payment details to backend after payment confirmation
-            fetch('http://localhost:3000/payment-success', {
+            fetch('http://localhost:3000/payment-webhook', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     playerID: document.getElementById("playerID").value,
-                    diamonds: parseInt(amount)
+                    serverID: document.getElementById("serverID").value,
+                    diamonds: parseInt(amount),
+                    status: 'success'
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Payment successful! ${data.diamondsAdded} diamonds added. New balance: ${data.newBalance}`);
+                    alert(`Payment successful! ${data.diamondsAdded} diamonds added.`);
                 } else {
                     alert("Payment verification failed.");
                 }
