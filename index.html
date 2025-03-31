@@ -191,29 +191,25 @@
             document.getElementById("paymentPage").style.display = "block";
 
             // Send payment details to backend after payment confirmation
-            fetch('http://localhost:3000/payment-webhook', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    playerID: document.getElementById("playerID").value,
-                    serverID: document.getElementById("serverID").value,
-                    diamonds: parseInt(amount),
-                    status: 'success'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(`Payment successful! ${data.diamondsAdded} diamonds added.`);
-                    // Fetch order details from backend
-                    fetchOrderDetails(data.transactionID);
-                } else {
-                    alert("Payment verification failed.");
-                }
-            })
-            .catch(error => console.error('Error:', error));
+            fetch('https://your-app-name.herokuapp.com/payment-success', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        playerID: document.getElementById("playerID").value,
+        diamonds: parseInt(amount)
+    })
+})
+.then(response => response.json())
+.then(data => {
+    if (data.success) {
+        alert(`Payment successful! ${data.diamondsAdded} diamonds added. New balance: ${data.newBalance}`);
+    } else {
+        alert("Payment verification failed.");
+    }
+})
+.catch(error => console.error('Error:', error));
         });
 
         function fetchOrderDetails(transactionID) {
