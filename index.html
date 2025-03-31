@@ -101,6 +101,14 @@
             max-width: 100%;
             margin-top: 20px;
         }
+
+        .order-details {
+            display: none;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -142,6 +150,15 @@
             <!-- QR Code will be inserted here -->
             <img id="qr-code" alt="UPI QR Code" />
         </div>
+    </div>
+
+    <!-- Order Details Section -->
+    <div class="order-details" id="orderDetails">
+        <h3>Order Details</h3>
+        <p><strong>Player ID:</strong> <span id="orderPlayerID"></span></p>
+        <p><strong>Server ID:</strong> <span id="orderServerID"></span></p>
+        <p><strong>Diamonds Purchased:</strong> <span id="orderDiamonds"></span></p>
+        <p><strong>Status:</strong> <span id="orderStatus"></span></p>
     </div>
 
     <script>
@@ -190,12 +207,32 @@
             .then(data => {
                 if (data.success) {
                     alert(`Payment successful! ${data.diamondsAdded} diamonds added.`);
+                    // Fetch order details from backend
+                    fetchOrderDetails(data.transactionID);
                 } else {
                     alert("Payment verification failed.");
                 }
             })
             .catch(error => console.error('Error:', error));
         });
+
+        function fetchOrderDetails(transactionID) {
+            fetch(`http://localhost:3000/order/${transactionID}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        // Display order details
+                        document.getElementById("orderPlayerID").textContent = data.playerID;
+                        document.getElementById("orderServerID").textContent = data.serverID;
+                        document.getElementById("orderDiamonds").textContent = data.diamonds;
+                        document.getElementById("orderStatus").textContent = data.status;
+                        document.getElementById("orderDetails").style.display = "block";
+                    } else {
+                        alert("Order details not found.");
+                    }
+                })
+                .catch(error => console.error('Error fetching order details:', error));
+        }
     </script>
 </body>
 </html>
