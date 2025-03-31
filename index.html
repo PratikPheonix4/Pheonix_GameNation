@@ -10,9 +10,13 @@
             text-align: center;
             background: url('https://i.postimg.cc/Xv2Fzdcf/wp10718490-modena-butterfly-wallpapers.jpg') no-repeat center center fixed;
             background-size: cover;
+            background-position: center center;
             color: white;
             padding: 20px;
+            margin: 0;
         }
+
+        /* Container for form and content */
         .container {
             max-width: 400px;
             margin: auto;
@@ -21,9 +25,11 @@
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
+
         h2 {
             color: #FFD700;
         }
+
         input, select, button {
             width: 90%;
             padding: 6px;
@@ -32,10 +38,12 @@
             border-radius: 5px;
             font-size: 14px;
         }
+
         input, select {
             background: #333;
             color: white;
         }
+
         button {
             background: #FFD700;
             color: black;
@@ -43,21 +51,42 @@
             cursor: pointer;
             transition: 0.3s;
         }
+
         button:hover {
             background: #FFC107;
         }
+
         .support, .footer-links {
             margin-top: 15px;
             font-size: 14px;
         }
+
         .support a, .footer-links a {
             color: #00BFFF;
             text-decoration: none;
             font-weight: bold;
         }
+
         .support a:hover, .footer-links a:hover {
             text-decoration: underline;
         }
+
+        /* For mobile responsiveness */
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+
+            input, select, button {
+                width: 100%;
+                font-size: 16px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+        }
+
         .payment-container {
             display: none;
             max-width: 400px;
@@ -67,6 +96,7 @@
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
+
         #qr-code {
             max-width: 100%;
             margin-top: 20px;
@@ -142,6 +172,27 @@
             // Display QR code
             document.getElementById("qr-code").src = qrCodeUrl;
             document.getElementById("paymentPage").style.display = "block";
+
+            // Send payment details to backend after payment confirmation
+            fetch('http://localhost:3000/payment-success', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playerID: document.getElementById("playerID").value,
+                    diamonds: parseInt(amount)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Payment successful! ${data.diamondsAdded} diamonds added. New balance: ${data.newBalance}`);
+                } else {
+                    alert("Payment verification failed.");
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </body>
