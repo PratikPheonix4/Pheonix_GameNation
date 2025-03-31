@@ -80,9 +80,18 @@
             <input type="text" id="playerID" placeholder="Enter Player ID" required>
             <input type="text" id="serverID" placeholder="Enter Server ID" required>
             <select id="diamondAmount">
-                <option value="100">💎 100 Diamonds - ₹79</option>
-                <option value="250">💎 250 Diamonds - ₹199</option>
-                <option value="500">💎 500 Diamonds - ₹399</option>
+                <option value="Weekly Pass">💎 Weekly Pass - ₹140</option>
+                <option value="Starlight Card">💎 Starlight Card - ₹310</option>
+                <option value="86">💎 86 Diamonds - ₹108</option>
+                <option value="172">💎 172 Diamonds - ₹215</option>
+                <option value="257">💎 257 Diamonds - ₹315</option>
+                <option value="429">💎 429 Diamonds - ₹520</option>
+                <option value="600">💎 600 Diamonds - ₹730</option>
+                <option value="792">💎 792 Diamonds - ₹950</option>
+                <option value="1050">💎 1050 Diamonds - ₹1250</option>
+                <option value="2195">💎 2195 Diamonds - ₹2550</option>
+                <option value="5532">💎 5532 Diamonds - ₹6299</option>
+                <option value="9288">💎 9288 Diamonds - ₹10500</option>
             </select>
             <button type="button" id="pay-btn">⚡ Pay Now</button>
         </form>
@@ -109,9 +118,18 @@
         document.getElementById("pay-btn").addEventListener("click", function() {
             let selectedDiamonds = document.getElementById("diamondAmount").value;
             let amountMap = {
-                "100": "79",
-                "250": "199",
-                "500": "399"
+                "Weekly Pass": "140",
+                "Starlight Card": "310",
+                "86": "108",
+                "172": "215",
+                "257": "315",
+                "429": "520",
+                "600": "730",
+                "792": "950",
+                "1050": "1250",
+                "2195": "2550",
+                "5532": "6299",
+                "9288": "10500"
             };
             let amount = amountMap[selectedDiamonds];
             let upiVpa = "6370294756@ybl"; // Replace with your own UPI VPA
