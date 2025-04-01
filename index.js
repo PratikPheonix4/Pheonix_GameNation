@@ -1,44 +1,40 @@
-require("dotenv").config();
+require('dotenv').config();
+
 const express = require("express");
+const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
-const { JWT } = require("google-auth-library"); // Use JWT for authentication
+const { GoogleAuth } = require("google-auth-library");
 const creds = require("./google-credentials.json");
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
 
 app.use(bodyParser.json());
 app.use(cors());
 
-let transactions = new Map(); // Using a Map instead of an array for faster lookups
+let transactions = new Map();
 
-// Use a function to authenticate with Google Sheets
-async function authenticateGoogleSheets() {
-    const auth = new JWT({
-        email: creds.client_email, // Service account email
-        key: creds.private_key,    // Private key from Google service account credentials
-        scopes: ['https://www.googleapis.com/auth/spreadsheets'], // Scopes for Google Sheets API
-    });
-
-    return auth;
-}
-
-// Function to add a transaction to Google Sheets
 async function addTransactionToSheet(transaction) {
     try {
         if (!GOOGLE_SHEET_ID) throw new Error("Google Sheet ID is missing");
 
         const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID);
-        
-        // Authenticate using the JWT client
-        const auth = await authenticateGoogleSheets();
-        await doc.useOAuth2Client(auth); // Using OAuth2 client for access
 
-        await doc.loadInfo(); // Load the document information
-        const sheet = doc.sheetsByIndex[0]; // Assuming the first sheet
+        // Use the GoogleAuth library to authenticate
+        const auth = new GoogleAuth({
+            credentials: creds,
+            scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+        });
+
+        const authClient = await auth.getClient();
+        doc.auth = authClient;
+
+        await doc.loadInfo(); // Loads document properties and worksheets
+
+        const sheet = doc.sheetsByIndex[0]; // Selects the first sheet
+
         await sheet.addRow({
             TransactionID: transaction.transactionID,
             PlayerID: transaction.playerID,
@@ -73,15 +69,6 @@ app.post("/submit-transaction", async (req, res) => {
         res.status(200).json({ message: "Transaction submitted for verification", success: true });
     } catch (error) {
         res.status(500).json({ message: "Error saving transaction", success: false });
-    }
-});
-
-app.get("/order/:transactionID", (req, res) => {
-    const transaction = transactions.get(req.params.transactionID);
-    if (transaction) {
-        res.json(transaction);
-    } else {
-        res.status(404).json({ message: "Transaction not found" });
     }
 });
 
