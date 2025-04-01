@@ -6,35 +6,36 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const { GoogleSpreadsheet } = require("google-spreadsheet");
 const { GoogleAuth } = require("google-auth-library");
-const creds = require("./google-credentials.json");
 
 const PORT = process.env.PORT || 3000;
-const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
+const base64Credentials = process.env.GOOGLE_CREDENTIALS_JSON;
 
-app.use(bodyParser.json());
-app.use(cors());
+if (!base64Credentials) {
+    console.error("Error: GOOGLE_CREDENTIALS_JSON is not set.");
+    process.exit(1);
+}
 
-let transactions = new Map();
+const credentialsJson = JSON.parse(Buffer.from(base64Credentials, 'base64').toString('utf8'));
 
-async function addTransactionToSheet(transaction) {
+async function authenticateGoogleSheet() {
+    const creds = credentialsJson;
+    const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID);
+    const auth = new GoogleAuth({
+        credentials: creds,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const authClient = await auth.getClient();
+    await doc.useServiceAccountAuth(authClient);
+    await doc.loadInfo();
+    console.log("Google Sheet Title:", doc.title);
+    
+    return doc;
+}
+
+async function addTransactionToSheet(transaction, doc) {
     try {
-        if (!GOOGLE_SHEET_ID) throw new Error("Google Sheet ID is missing");
-
-        const doc = new GoogleSpreadsheet(GOOGLE_SHEET_ID);
-
-        // Use the GoogleAuth library to authenticate
-        const auth = new GoogleAuth({
-            credentials: creds,
-            scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-        });
-
-        const authClient = await auth.getClient();
-        doc.auth = authClient;
-
-        await doc.loadInfo(); // Loads document properties and worksheets
-
-        const sheet = doc.sheetsByIndex[0]; // Selects the first sheet
-
+        const sheet = doc.sheetsByIndex[0]; // Select first sheet
         await sheet.addRow({
             TransactionID: transaction.transactionID,
             PlayerID: transaction.playerID,
@@ -49,6 +50,9 @@ async function addTransactionToSheet(transaction) {
         console.error("Error saving transaction to sheet:", error);
     }
 }
+
+app.use(bodyParser.json());
+app.use(cors());
 
 app.post("/submit-transaction", async (req, res) => {
     const { transactionID, playerID, serverID, amount } = req.body;
@@ -65,11 +69,16 @@ app.post("/submit-transaction", async (req, res) => {
     transactions.set(transactionID, transaction);
 
     try {
-        await addTransactionToSheet(transaction);
+        const doc = await authenticateGoogleSheet(); // Get the authenticated sheet
+        await addTransactionToSheet(transaction, doc); // Pass `doc` to the function
         res.status(200).json({ message: "Transaction submitted for verification", success: true });
     } catch (error) {
+        console.error("Error in transaction submission:", error);
         res.status(500).json({ message: "Error saving transaction", success: false });
     }
 });
-
+app.get("/", (req, res) => {
+    res.send("Server is running!");
+});
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
