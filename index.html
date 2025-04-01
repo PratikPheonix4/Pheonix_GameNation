@@ -223,7 +223,7 @@
             document.getElementById("paymentPage").style.display = "block";
 
             // Send payment details to backend
-            fetch("https://localhost:3000/submit-transaction", {
+            fetch("http://localhost:3000/submit-transaction", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ transactionID, playerID, serverID, amount })
@@ -251,7 +251,7 @@
                 return;
             }
 
-            fetch(`https://localhost:3000/order/${transactionID}`)
+            fetch(`http://localhost:3000/order/${transactionID}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
