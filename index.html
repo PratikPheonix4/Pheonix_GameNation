@@ -6,14 +6,6 @@
     <title>Pheonix Gaming Store</title>
     <style>
         body {
-            font-family: Arial, sans-serif;<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pheonix Gaming Store</title>
-    <style>
-        body {
             font-family: Arial, sans-serif;
             text-align: center;
             background: url('https://i.postimg.cc/Xv2Fzdcf/wp10718490-modena-butterfly-wallpapers.jpg') no-repeat center center fixed;
@@ -72,9 +64,48 @@
             padding: 6px;
             margin: 5px 0;
         }
+
+        /* Responsive Design */
+        @media screen and (max-width: 600px) {
+            input, select, button {
+                width: 100%;
+            }
+        }
+
+        /* Loading Spinner */
+        #loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: #FFD700;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .toast.show {
+            display: block;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
+    <div id="loading">Processing...</div>
+
     <div class="container">
         <h2>🔥 Pheonix Gaming Store - MLBB Diamond Top-Up 🔥</h2>
         <form id="topupForm">
@@ -96,14 +127,6 @@
             </select>
             <button type="button" id="pay-btn">⚡ Pay Now</button>
         </form>
-<p class="support">For support, contact us on <a href="https://wa.me/yourwhatsapp">WhatsApp</a>.</p>
-        <p class="footer-links">
-            <a href="privacy-policy.html">Privacy Policy</a> | 
-            <a href="terms-conditions.html">Terms and Conditions</a> | 
-            <a href="cancellation-refund.html">Cancellation and Refund</a> | 
-            <a href="shipping-delivery.html">Shipping and Delivery</a> | 
-            <a href="contact.html">Contact Us</a>
-        </p>
     </div>
 
     <!-- Payment Section -->
@@ -126,11 +149,40 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
     <script>
+        // Show Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
+        }
+
+        // Input validation for Player ID and Server ID
+        function validateInputs(playerID, serverID) {
+            const playerIdRegex = /^[0-9]+$/;
+            const serverIdRegex = /^[0-9]+$/;
+
+            if (!playerIdRegex.test(playerID)) {
+                showToast("Invalid Player ID. Only numeric characters allowed.");
+                return false;
+            }
+            if (!serverIdRegex.test(serverID)) {
+                showToast("Invalid Server ID. Only numeric characters allowed.");
+                return false;
+            }
+            return true;
+        }
+
         document.getElementById("pay-btn").addEventListener("click", function() {
             let playerID = document.getElementById("playerID").value;
             let serverID = document.getElementById("serverID").value;
             let selectedDiamonds = document.getElementById("diamondAmount").value;
+
+            if (!validateInputs(playerID, serverID)) return;
 
             let amountMap = {
                 "Weekly Pass": "140",
@@ -153,6 +205,9 @@
             let upiVpa = "6370294756@ybl"; // Your UPI VPA
             let paymentUrl = `upi://pay?pa=${upiVpa}&pn=Pheonix%20Gaming%20Store&am=${amount}&cu=INR`;
 
+            // Show loading indicator
+            document.getElementById("loading").style.display = "block";
+
             // Generate QR Code
             let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(paymentUrl)}&size=200x200`;
 
@@ -167,29 +222,32 @@
             })
             .then(response => response.json())
             .then(data => {
+                document.getElementById("loading").style.display = "none";
                 if (data.success) {
-                    alert("Transaction submitted. Awaiting verification.");
+                    showToast("Scan QR and provide transaction id for payment verification.");
                 } else {
-                    alert("Transaction submission failed: " + data.message);
+                    showToast("Transaction submission failed: " + data.message);
                 }
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                document.getElementById("loading").style.display = "none";
+                showToast("Error: " + error.message);
+            });
         });
 
         function fetchOrderDetails() {
             let transactionID = document.getElementById("transactionIDInput").value;
 
             if (!transactionID) {
-                alert("Please enter a Transaction ID");
+                showToast("Please enter a Transaction ID");
                 return;
             }
 
-            fetch(`https://blooming-reef-41493.herokuapp.com/order/${transactionID}`)
-
+            fetch(`http://localhost:3000/order/${transactionID}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
-                        alert("Transaction not found");
+                        showToast("Transaction not found");
                     } else {
                         document.getElementById("orderPlayerID").textContent = data.playerID;
                         document.getElementById("orderServerID").textContent = data.serverID;
@@ -198,11 +256,9 @@
                         document.getElementById("orderDetails").style.display = "block";
                     }
                 })
-                .catch(error => console.error("Error fetching order details:", error));
+                .catch(error => showToast("Error fetching order details: " + error.message));
         }
     </script>
 
 </body>
 </html>
-
-            
