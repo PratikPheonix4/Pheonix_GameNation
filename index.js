@@ -77,6 +77,11 @@ app.post("/submit-transaction", async (req, res) => {
         res.status(500).json({ message: "Error saving transaction", success: false });
     }
 });
+app.get("/order/:transactionID", async (req, res) => {
+    const transactionID = req.params.transactionID;
+    res.json({ message: `Transaction ${transactionID} details` });
+});
+
 app.get("/", (req, res) => {
     res.send("Server is running!");
 });
