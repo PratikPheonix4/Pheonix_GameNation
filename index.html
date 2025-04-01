@@ -223,7 +223,7 @@
             document.getElementById("paymentPage").style.display = "block";
 
             // Send payment details to backend
-            fetch("http://localhost:3000/submit-transaction", {
+            fetch("https://blooming-reef-41493-d3d3657ff509.herokuapp.com/submit-transaction", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ transactionID, playerID, serverID, amount })
@@ -251,7 +251,7 @@
                 return;
             }
 
-            fetch(`http://localhost:3000/order/${transactionID}`)
+            fetch(`https://blooming-reef-41493-d3d3657ff509.herokuapp.com/order/${transactionID}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.message) {
