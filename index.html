@@ -6,7 +6,197 @@
     <title>Pheonix Gaming Store</title>
     <style>
         body {
+            font-family: Arial, sans-serif;<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pheonix Gaming Store</title>
+    <style>
+        body {
             font-family: Arial, sans-serif;
+            text-align: center;
+            background: url('https://i.postimg.cc/Xv2Fzdcf/wp10718490-modena-butterfly-wallpapers.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        h2 { color: #FFD700; }
+        input, select, button {
+            width: 90%;
+            padding: 6px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input, select { background: #333; color: white; }
+        button {
+            background: #FFD700;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover { background: #FFC107; }
+        .payment-container, .order-details { 
+            display: none;
+            max-width: 400px;
+            margin: 20px auto;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+        .order-check-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(26, 26, 26, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+            margin-top: 20px;
+        }
+        .order-check-box input,
+        .order-check-box button {
+            width: 20%;
+            padding: 6px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔥 Pheonix Gaming Store - MLBB Diamond Top-Up 🔥</h2>
+        <form id="topupForm">
+            <input type="text" id="playerID" placeholder="Enter Player ID" required>
+            <input type="text" id="serverID" placeholder="Enter Server ID" required>
+            <select id="diamondAmount">
+                <option value="Weekly Pass">💎 Weekly Pass - ₹140</option>
+                <option value="Starlight Card">💎 Starlight Card - ₹310</option>
+                <option value="86">💎 86 Diamonds - ₹108</option>
+                <option value="172">💎 172 Diamonds - ₹215</option>
+                <option value="257">💎 257 Diamonds - ₹315</option>
+                <option value="429">💎 429 Diamonds - ₹520</option>
+                <option value="600">💎 600 Diamonds - ₹730</option>
+                <option value="792">💎 792 Diamonds - ₹950</option>
+                <option value="1050">💎 1050 Diamonds - ₹1250</option>
+                <option value="2195">💎 2195 Diamonds - ₹2550</option>
+                <option value="5532">💎 5532 Diamonds - ₹6299</option>
+                <option value="9288">💎 9288 Diamonds - ₹10500</option>
+            </select>
+            <button type="button" id="pay-btn">⚡ Pay Now</button>
+        </form>
+    </div>
+
+    <!-- Payment Section -->
+    <div class="payment-container" id="paymentPage">
+        <h2>Payment Method</h2>
+        <p>⚡Scan to Pay⚡</p>
+        <img id="qr-code" alt="UPI QR Code" />
+    </div>
+
+    <!-- Order Check Section -->
+    <div class="order-check-box">
+        <input type="text" id="transactionIDInput" placeholder="Enter Transaction ID">
+        <button onclick="fetchOrderDetails()">Check Order</button>
+
+        <div id="orderDetails" style="display:none;">
+            <p>Player ID: <span id="orderPlayerID"></span></p>
+            <p>Server ID: <span id="orderServerID"></span></p>
+            <p>Diamonds: <span id="orderDiamonds"></span></p>
+            <p>Status: <span id="orderStatus"></span></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("pay-btn").addEventListener("click", function() {
+            let playerID = document.getElementById("playerID").value;
+            let serverID = document.getElementById("serverID").value;
+            let selectedDiamonds = document.getElementById("diamondAmount").value;
+
+            let amountMap = {
+                "Weekly Pass": "140",
+                "Starlight Card": "310",
+                "86": "108",
+                "172": "215",
+                "257": "315",
+                "429": "520",
+                "600": "730",
+                "792": "950",
+                "1050": "1250",
+                "2195": "2550",
+                "5532": "6299",
+                "9288": "10500"
+            };
+            let amount = amountMap[selectedDiamonds];
+
+            let transactionID = `TXN${Date.now()}`; // Unique transaction ID
+
+            let upiVpa = "6370294756@ybl"; // Your UPI VPA
+            let paymentUrl = `upi://pay?pa=${upiVpa}&pn=Pheonix%20Gaming%20Store&am=${amount}&cu=INR`;
+
+            // Generate QR Code
+            let qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(paymentUrl)}&size=200x200`;
+
+            document.getElementById("qr-code").src = qrCodeUrl;
+            document.getElementById("paymentPage").style.display = "block";
+
+            // Send payment details to backend
+            fetch("http://localhost:3000/submit-transaction", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ transactionID, playerID, serverID, amount })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Transaction submitted. Awaiting verification.");
+                } else {
+                    alert("Transaction submission failed: " + data.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+
+        function fetchOrderDetails() {
+            let transactionID = document.getElementById("transactionIDInput").value;
+
+            if (!transactionID) {
+                alert("Please enter a Transaction ID");
+                return;
+            }
+
+            fetch(`https://blooming-reef-41493.herokuapp.com/order/${transactionID}`)
+
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert("Transaction not found");
+                    } else {
+                        document.getElementById("orderPlayerID").textContent = data.playerID;
+                        document.getElementById("orderServerID").textContent = data.serverID;
+                        document.getElementById("orderDiamonds").textContent = data.amount;
+                        document.getElementById("orderStatus").textContent = data.status;
+                        document.getElementById("orderDetails").style.display = "block";
+                    }
+                })
+                .catch(error => console.error("Error fetching order details:", error));
+        }
+    </script>
+
+</body>
+</html>
+
             text-align: center;
             background: url('https://i.postimg.cc/Xv2Fzdcf/wp10718490-modena-butterfly-wallpapers.jpg') no-repeat center center fixed;
             background-size: cover;
